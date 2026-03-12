@@ -16,6 +16,7 @@ if (!fs.existsSync(uploadsDir)) {
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+app.set('trust proxy', 1);
 
 app.use(cors());
 app.use(express.json());
@@ -60,10 +61,31 @@ function writeDB(data) {
   fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
 }
 
+function decodeOriginalName(name) {
+  try {
+    // Fix mojibake for non-ASCII filenames uploaded through multipart parsers.
+    return Buffer.from(name, 'latin1').toString('utf8');
+  } catch {
+    return name;
+  }
+}
+
+function getPublicBaseUrl(req) {
+  const forwardedProto = req.get('x-forwarded-proto');
+  const protocol = forwardedProto || req.protocol || 'https';
+  return `${protocol}://${req.get('host')}`;
+}
+
+function toClientFile(req, file) {
+  const baseUrl = getPublicBaseUrl(req);
+  const normalizedUrl = file.url.startsWith('http') ? file.url : `${baseUrl}${file.url}`;
+  return { ...file, url: normalizedUrl };
+}
+
 // Get all files
 app.get('/api/files', (req, res) => {
   const db = readDB();
-  res.json(db.files);
+  res.json(db.files.map(file => toClientFile(req, file)));
 });
 
 // Upload file
@@ -85,7 +107,7 @@ app.post('/api/files', (req, res) => {
     
     const newFile = {
       id: uuidv4(),
-      name: req.file.originalname,
+      name: decodeOriginalName(req.file.originalname),
       type: fileType,
       url: `/uploads/${req.file.filename}`,
       size: req.file.size,
@@ -97,7 +119,7 @@ app.post('/api/files', (req, res) => {
     db.files.push(newFile);
     writeDB(db);
 
-    res.json(newFile);
+    res.json(toClientFile(req, newFile));
   });
 });
 
@@ -127,7 +149,7 @@ app.patch('/api/files/:id/favorite', (req, res) => {
   if (file) {
     file.favorite = !file.favorite;
     writeDB(db);
-    res.json(file);
+    res.json(toClientFile(req, file));
   } else {
     res.status(404).json({ error: 'File not found' });
   }
