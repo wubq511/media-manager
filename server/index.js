@@ -9,6 +9,11 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -62,31 +67,38 @@ app.get('/api/files', (req, res) => {
 });
 
 // Upload file
-app.post('/api/files', upload.single('file'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ error: 'No file uploaded' });
-  }
+app.post('/api/files', (req, res) => {
+  upload.single('file')(req, res, (err) => {
+    if (err) {
+      console.error('Upload error:', err);
+      return res.status(400).json({ error: err.message });
+    }
+    
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
 
-  const db = readDB();
-  let fileType = 'image';
-  if (req.file.mimetype.startsWith('audio/')) fileType = 'audio';
-  else if (req.file.mimetype.startsWith('video/')) fileType = 'video';
-  
-  const newFile = {
-    id: uuidv4(),
-    name: req.file.originalname,
-    type: fileType,
-    url: `/uploads/${req.file.filename}`,
-    size: req.file.size,
-    folderId: req.body.folderId || null,
-    favorite: false,
-    createdAt: new Date().toISOString()
-  };
+    const db = readDB();
+    let fileType = 'image';
+    if (req.file.mimetype.startsWith('audio/')) fileType = 'audio';
+    else if (req.file.mimetype.startsWith('video/')) fileType = 'video';
+    
+    const newFile = {
+      id: uuidv4(),
+      name: req.file.originalname,
+      type: fileType,
+      url: `/uploads/${req.file.filename}`,
+      size: req.file.size,
+      folderId: req.body.folderId || null,
+      favorite: false,
+      createdAt: new Date().toISOString()
+    };
 
-  db.files.push(newFile);
-  writeDB(db);
+    db.files.push(newFile);
+    writeDB(db);
 
-  res.json(newFile);
+    res.json(newFile);
+  });
 });
 
 // Delete file
