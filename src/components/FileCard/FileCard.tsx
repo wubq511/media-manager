@@ -1,4 +1,4 @@
-import { Music, Video, Heart, Trash2, MoreVertical, Play, Pause } from 'lucide-react';
+import { Music, Video, Image, Heart, Trash2, MoreVertical, Play, Pause } from 'lucide-react';
 import { useState } from 'react';
 import type { MediaFile } from '../../types';
 import { formatFileSize, formatDuration } from '../../utils/helpers';
@@ -14,20 +14,23 @@ interface FileCardProps {
 
 export default function FileCard({ file, onPlay, onDelete, onToggleFavorite, isPlaying }: FileCardProps) {
   const [showMenu, setShowMenu] = useState(false);
+  const isImage = file.type === 'image';
 
   return (
     <div className={`file-card ${isPlaying ? 'playing' : ''}`}>
       <div className="file-thumbnail" onClick={() => onPlay(file)}>
-        {file.thumbnail ? (
-          <img src={file.thumbnail} alt={file.name} />
+        {file.thumbnail || isImage ? (
+          <img src={file.url} alt={file.name} />
         ) : (
           <div className="thumbnail-placeholder">
-            {file.type === 'audio' ? <Music size={32} /> : <Video size={32} />}
+            {file.type === 'audio' ? <Music size={32} /> : file.type === 'image' ? <Image size={32} /> : <Video size={32} />}
           </div>
         )}
-        <div className="play-overlay">
-          {isPlaying ? <Pause size={28} /> : <Play size={28} />}
-        </div>
+        {file.type !== 'image' && (
+          <div className="play-overlay">
+            {isPlaying ? <Pause size={28} /> : <Play size={28} />}
+          </div>
+        )}
         {file.duration && (
           <span className="duration-badge">{formatDuration(file.duration)}</span>
         )}

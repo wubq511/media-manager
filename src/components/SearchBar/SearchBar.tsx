@@ -1,4 +1,4 @@
-import { Search, X, Music, Video } from 'lucide-react';
+import { Search, X, Music, Video, Image } from 'lucide-react';
 import { useMedia } from '../../contexts/MediaContext';
 import './SearchBar.css';
 
@@ -46,6 +46,13 @@ export default function SearchBar() {
         >
           <Video size={14} />
           Video
+        </button>
+        <button
+          className={`filter-tab ${state.filterType === 'image' ? 'active' : ''}`}
+          onClick={() => dispatch({ type: 'SET_FILTER_TYPE', payload: 'image' })}
+        >
+          <Image size={14} />
+          Image
         </button>
       </div>
     </div>

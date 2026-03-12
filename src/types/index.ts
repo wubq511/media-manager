@@ -1,4 +1,4 @@
-export type MediaType = 'audio' | 'video';
+export type MediaType = 'audio' | 'video' | 'image';
 
 export interface MediaFile {
   id: string;

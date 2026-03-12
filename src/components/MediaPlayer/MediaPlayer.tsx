@@ -94,14 +94,18 @@ export default function MediaPlayer({ file, onClose, onProgressUpdate }: MediaPl
 
   if (!file) return null;
 
+  const isImage = file.type === 'image';
+
   return (
     <div className={`media-player ${isFullscreen ? 'fullscreen' : ''}`}>
       <div className="player-header">
         <h3 className="player-title">{file.name}</h3>
         <div className="player-controls-header">
-          <button className="player-btn" onClick={() => setIsFullscreen(!isFullscreen)}>
-            {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
-          </button>
+          {!isImage && (
+            <button className="player-btn" onClick={() => setIsFullscreen(!isFullscreen)}>
+              {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+            </button>
+          )}
           <button className="player-btn close-btn" onClick={onClose}>
             <X size={20} />
           </button>
@@ -109,7 +113,9 @@ export default function MediaPlayer({ file, onClose, onProgressUpdate }: MediaPl
       </div>
 
       <div className="player-media">
-        {isVideo ? (
+        {isImage ? (
+          <img src={file.url} alt={file.name} className="image-viewer" />
+        ) : isVideo ? (
           <video
             ref={videoRef}
             src={file.url}
@@ -131,55 +137,59 @@ export default function MediaPlayer({ file, onClose, onProgressUpdate }: MediaPl
         )}
       </div>
 
-      <div className="player-progress">
-        <span className="time">{formatDuration(currentTime)}</span>
-        <input
-          type="range"
-          min="0"
-          max={duration || 100}
-          value={currentTime}
-          onChange={handleSeek}
-          className="progress-slider"
-        />
-        <span className="time">{formatDuration(duration)}</span>
-      </div>
-
-      <div className="player-controls">
-        <div className="controls-left">
-          <button className="player-btn" onClick={() => skip(-10)}>
-            <SkipBack size={20} />
-          </button>
+      {!isImage && (
+        <div className="player-progress">
+          <span className="time">{formatDuration(currentTime)}</span>
+          <input
+            type="range"
+            min="0"
+            max={duration || 100}
+            value={currentTime}
+            onChange={handleSeek}
+            className="progress-slider"
+          />
+          <span className="time">{formatDuration(duration)}</span>
         </div>
+      )}
 
-        <div className="controls-center">
-          <button 
-            className="play-btn"
-            onClick={() => setIsPlaying(!isPlaying)}
-          >
-            {isPlaying ? <Pause size={24} /> : <Play size={24} />}
-          </button>
-        </div>
-
-        <div className="controls-right">
-          <button className="player-btn" onClick={() => skip(10)}>
-            <SkipForward size={20} />
-          </button>
-          <div className="volume-control">
-            <button className="player-btn" onClick={toggleMute}>
-              {isMuted || volume === 0 ? <VolumeX size={20} /> : <Volume2 size={20} />}
+      {!isImage && (
+        <div className="player-controls">
+          <div className="controls-left">
+            <button className="player-btn" onClick={() => skip(-10)}>
+              <SkipBack size={20} />
             </button>
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.1"
-              value={isMuted ? 0 : volume}
-              onChange={handleVolumeChange}
-              className="volume-slider"
-            />
+          </div>
+
+          <div className="controls-center">
+            <button 
+              className="play-btn"
+              onClick={() => setIsPlaying(!isPlaying)}
+            >
+              {isPlaying ? <Pause size={24} /> : <Play size={24} />}
+            </button>
+          </div>
+
+          <div className="controls-right">
+            <button className="player-btn" onClick={() => skip(10)}>
+              <SkipForward size={20} />
+            </button>
+            <div className="volume-control">
+              <button className="player-btn" onClick={toggleMute}>
+                {isMuted || volume === 0 ? <VolumeX size={20} /> : <Volume2 size={20} />}
+              </button>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.1"
+                value={isMuted ? 0 : volume}
+                onChange={handleVolumeChange}
+                className="volume-slider"
+              />
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

@@ -30,10 +30,10 @@ const upload = multer({
   storage,
   limits: { fileSize: 500 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('audio/') || file.mimetype.startsWith('video/')) {
+    if (file.mimetype.startsWith('audio/') || file.mimetype.startsWith('video/') || file.mimetype.startsWith('image/')) {
       cb(null, true);
     } else {
-      cb(new Error('Only audio and video files are allowed'));
+      cb(new Error('Only audio, video and image files are allowed'));
     }
   }
 });
@@ -68,10 +68,14 @@ app.post('/api/files', upload.single('file'), (req, res) => {
   }
 
   const db = readDB();
+  let fileType = 'image';
+  if (req.file.mimetype.startsWith('audio/')) fileType = 'audio';
+  else if (req.file.mimetype.startsWith('video/')) fileType = 'video';
+  
   const newFile = {
     id: uuidv4(),
     name: req.file.originalname,
-    type: req.file.mimetype.startsWith('audio/') ? 'audio' : 'video',
+    type: fileType,
     url: `/uploads/${req.file.filename}`,
     size: req.file.size,
     folderId: req.body.folderId || null,

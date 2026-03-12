@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Upload, X, Music, Video } from 'lucide-react';
+import { Upload, X, Music, Video, Image } from 'lucide-react';
 import { useMedia } from '../../contexts/MediaContext';
 import './UploadModal.css';
 
@@ -69,7 +69,7 @@ export default function UploadModal({ isOpen, onClose }: UploadModalProps) {
           <input
             ref={inputRef}
             type="file"
-            accept="audio/*,video/*"
+            accept="audio/*,video/*,image/*"
             multiple
             onChange={handleInputChange}
             hidden
@@ -82,6 +82,7 @@ export default function UploadModal({ isOpen, onClose }: UploadModalProps) {
           <div className="supported-formats">
             <span><Music size={14} /> Audio</span>
             <span><Video size={14} /> Video</span>
+            <span><Image size={14} /> Image</span>
           </div>
         </div>
 
